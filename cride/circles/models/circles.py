@@ -31,7 +31,7 @@ class Circle(CRideModel):
     )
 
     members_limit = models.PositiveIntegerField(
-        default=0
+        default=0,
         help_text="numero de usuarios al que esta limitado el circulo"
     )
 
