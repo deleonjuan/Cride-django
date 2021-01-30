@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework.authtoken',
     'rest_framework',
+    'anymail',
     'users',
     'circles',
 ]
@@ -52,6 +53,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Email
+ANYMAIL = {
+    "MAILGUN_API_KEY": "478c57b6d0f6b6ac87c0711cb97526e3-07bc7b05-52214462",
+    "MAILGUN_SENDER_DOMAIN": 'Mailgun Sandbox <postmaster@sandbox9b5fdd2743f244bab535e42f1ae80e8a.mailgun.org>',
+}
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 
 ROOT_URLCONF = 'cride.urls'
 
