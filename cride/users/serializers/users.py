@@ -1,5 +1,8 @@
+from django.conf import settings
 from rest_framework import serializers 
 from django.contrib.auth import authenticate, password_validation
+from django.utils import timezone
+from datetime import timedelta
 
 from rest_framework.validators import UniqueValidator
 from django.core.validators import RegexValidator
@@ -9,11 +12,13 @@ from django.template.loader import render_to_string
 
 from users.models import User, Profile
 from rest_framework.authtoken.models import Token
+import jwt
+
 
 class UserModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ( 'username', 'first_name', 'last_name', 'phone_number', 'email' )
+        fields = ( 'username', 'first_name', 'last_name', 'phone_number', 'email', )
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -78,20 +83,55 @@ class UserSignupSerializer(serializers.Serializer):
 
     def send_confirmation_email(self, user):
         verification_token = self.gen_verification_token(user)
-        
+        print(verification_token)
 
-        subject = 'welcome'
-        from_email = 'Mailgun Sandbox <postmaster@sandbox9b5fdd2743f244bab535e42f1ae80e8a.mailgun.org>'
-        content = "hey"#{'token' : verification_token, 'user':user}
-        # content = render_to_string(
-        #     'emails/user.account_verification.html',
-        #     {'token' : verification_token, 'user': user}
-        # )
+        # subject = 'welcome'
+        # from_email = 'Mailgun Sandbox <postmaster@sandbox9b5fdd2743f244bab535e42f1ae80e8a.mailgun.org>'
+        # content = "hey"#{'token' : verification_token, 'user':user}
+        # # content = render_to_string(
+        # #     'emails/user.account_verification.html',
+        # #     {'token' : verification_token, 'user': user}
+        # # )
 
-        # # msg = EmailMultiAlternatives(subject, content, from_email, [user.email])
-        msg = send_mail(subject, content, from_email, [user.email])
-        msg.attach_alternative(content, 'text/html')
-        msg.send()
+        # # # msg = EmailMultiAlternatives(subject, content, from_email, [user.email])
+        # msg = send_mail(subject, content, from_email, [user.email])
+        # msg.attach_alternative(content, 'text/html')
+        # msg.send()
 
     def gen_verification_token(self, user):
-        return 'token'
+        exp_data = timezone.now() + timedelta(days = 3)
+        payload = {
+            'user': user.username,
+            'exp': int(exp_data.timestamp()),
+            'type': 'email_confirmation'
+        }
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        return token
+
+
+class AccountVerificationSerializer(serializers.Serializer):
+    """ verification serializer """
+
+    token = serializers.CharField()
+
+    def validate_token(self, data):
+        """ token is valid """
+        try:
+            payload = jwt.decode(data, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise serializers.ValidationError('token expirado')
+        except jwt.PyJWTError:
+            raise serializers.ValidationError('invalid token')
+
+        if payload['type'] != 'email_confirmation':
+            raise serializers.ValidationError('invalid token')
+
+        self.context['payload'] = payload
+        return data
+
+    def save(self):
+        """ update """
+        payload = self.context['payload']
+        user = User.objects.get(username = payload['user'])
+        user.is_verified = True
+        user.save()
