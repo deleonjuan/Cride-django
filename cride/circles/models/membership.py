@@ -9,7 +9,7 @@ class Membership(CRideModel):
 
     is_admin = models.BooleanField(
         'circle_admin',
-        default=-False,
+        default=False,
         help_text='los admins tienene el control de los circulos'
     )
 

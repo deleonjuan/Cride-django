@@ -76,7 +76,7 @@ class UserSignupSerializer(serializers.Serializer):
 
     def create(self, data):
         data.pop('password_confirmation')
-        user = User.objects.create_user(**data, is_verified=True)
+        user = User.objects.create_user(**data, is_verified=True, is_client=True)
         Profile.objects.create(user=user)
         self.send_confirmation_email(user)
         return user
@@ -132,6 +132,7 @@ class AccountVerificationSerializer(serializers.Serializer):
     def save(self):
         """ update """
         payload = self.context['payload']
+
         user = User.objects.get(username = payload['user'])
         user.is_verified = True
         user.save()

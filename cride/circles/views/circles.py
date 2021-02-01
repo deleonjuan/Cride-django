@@ -6,6 +6,7 @@ from circles.serializers import CircleModelSerializer
 
 from circles.permissions import isCircleAdmin
 
+
 class CircleViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
@@ -18,10 +19,8 @@ class CircleViewSet(
     la funcion delete queda fuera, pues nadie puede eliminar un circulo
     """
 
-    # permission_classes=[
-    #     permissions.IsAuthenticated
-    # ]
     serializer_class = CircleModelSerializer
+    lookup_field = 'slug_name' #campo por el que se llaman en vez de id ej. localhost:8000/circles/slug_name/
 
     def get_permissions(self):
         permissions = [ IsAuthenticated ]
