@@ -12,10 +12,14 @@ from rest_framework.permissions import (
 from users.permissions import IsAccountOwner
 
 from users.serializers.users import UserLoginSerializer, UserModelSerializer, UserSignupSerializer, AccountVerificationSerializer
+from users.serializers.profiles import ProfileModelSerializer
 from circles.serializers.circles import CircleModelSerializer
 
 
-class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class UserViewSet(
+    mixins.RetrieveModelMixin, 
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet):
 
 
     queryset = User.objects.filter(is_active=True, is_client=True)
@@ -25,7 +29,7 @@ class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     def get_permissions(self):
         if self.action in ['signup', 'login', 'verify']:
             permissions = [AllowAny]
-        elif self.action == 'retrieve':
+        elif self.action == ['retrieve', 'update', 'partial_update']:
             permissions = [IsAccountOwner, IsAuthenticated]
         else:
             permissions = [IsAuthenticated]
@@ -83,3 +87,19 @@ class UserViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
         }
         response.data = data
         return response
+
+    @action(detail=True, methods=['put', 'patch'])
+    def profile(self, request, *args, **kwargs):
+
+        user = self.get_object()
+        profile = user.profile
+        partial = request.method == 'PATCH'
+        serializer = ProfileModelSerializer(
+            profile,
+            data=request.data,
+            partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data = UserModelSerializer(user).data
+        return Response(data)

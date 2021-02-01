@@ -14,13 +14,18 @@ from users.models import User, Profile
 from rest_framework.authtoken.models import Token
 import jwt
 
+from users.serializers.profiles import ProfileModelSerializer 
+
 
 class UserModelSerializer(serializers.ModelSerializer):
+
+    profile = ProfileModelSerializer(read_only=True)
+
     class Meta:
         model = User
-        fields = ( 'username', 'first_name', 'last_name', 'phone_number', 'email', )
+        fields = ( 'username', 'first_name', 'last_name', 'phone_number', 'email', 'profile' )
 
-
+ 
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(min_length=8, max_length=64)

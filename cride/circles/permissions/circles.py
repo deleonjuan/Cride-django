@@ -2,7 +2,6 @@ from rest_framework.permissions import BasePermission
 
 from circles.models import Membership
 
-
 class isCircleAdmin(BasePermission):
     """
     da permiso de manipular el circulo solo si es el admin
