@@ -64,7 +64,13 @@ class CreateRideSerializer(serializers.ModelSerializer):
 
         # profile
         profile = data['offered_by'].profile
-        profile.offered_by += 1
+        profile.rides_offered += 1
         profile.save()
 
         return ride
+
+class RideModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ride
+        fields = '__all__'
+        read_only_fields = ['offered_by', 'offered_in', 'rating',]
