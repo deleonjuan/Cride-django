@@ -6,6 +6,9 @@ from circles.serializers import CircleModelSerializer
 
 from circles.permissions import isCircleAdmin
 
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 class CircleViewSet(
     mixins.CreateModelMixin,
@@ -28,6 +31,12 @@ class CircleViewSet(
         if self.action in ['update', 'partial_update']:
             permissions.append(isCircleAdmin)
         return [ permission() for permission in permissions ]
+
+    # filtros
+    filter_backends = (SearchFilter, OrderingFilter, DjangoFilterBackend)
+    search_fields = ['slug_name', 'name']
+    ordering_fields = ['rides_offered', 'rides_taken', 'name']
+    filter_fields = ['is_verified', 'is_limited']
 
     def get_queryset(self):
         queryset = Circle.objects.all()
